@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Update 'VARIANT' to pick an LTS version of Node.js: 18, 16, 14.
+        # Append -bullseye or -buster to pin to an OS version.
+        # Use -bullseye variants on local arm64/Apple Silicon.
+        VARIANT: 22-bookworm
+
+    volumes:
+      - ..:/workspace:cached
+      - commandhistory:/commandhistory
+      - vscode-extensions:/home/node/.vscode-server/extensions
+      - vscode-extensions-insiders:/home/node/.vscode-server-insiders/extensions
+      - ~/.ssh:/home/node/.ssh
+      - ~/.gitconfig:/home/node/.gitconfig
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+
+    # Uncomment the next line to use a non-root user for all processes.
+    # user: node
+
+    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+
+volumes:
+  commandhistory:
+  vscode-extensions:
+  vscode-extensions-insiders:
