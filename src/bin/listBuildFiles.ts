@@ -23,6 +23,4 @@ if (fs.existsSync(cssDirectory)) {
   files = [...files, ...cssFiles];
 }
 
-files.forEach((file) => {
-  console.log(file);
-});
+fs.writeFileSync(path.resolve(buildDirectory, 'files.txt'), files.join('\n'));

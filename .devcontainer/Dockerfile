@@ -33,3 +33,8 @@ RUN SNIPPET="export HISTFILE=/commandhistory/.zsh_history" \
   && echo $SNIPPET >> "$HOME/.zshrc" \
   && echo "HISTSIZE=10000000" >> "$HOME/.zshrc" \
   && echo "SAVEHIST=10000000" >> "$HOME/.zshrc"
+
+# Install aws cli
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+  && unzip awscliv2.zip \
+  && ./aws/install
