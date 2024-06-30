@@ -5,9 +5,9 @@
   "scripts": {
     "start": "react-scripts start",
     "start:server": "concurrently \"http-server ./build -p 3002\" \"watch 'yarn build:development && yarn listBuildFiles' src\"",
-    "build": "react-scripts build",
     "build:development": "env-cmd -f .env react-scripts build",
     "build:staging": "env-cmd -f .env.staging react-scripts build",
+    "build:production": "react-scripts build",
     "deploy:staging": "tsx ./src/bin/deploy.ts staging",
     "deploy:production": "tsx ./src/bin/deploy.ts production",
     "listBuildFiles": "tsx ./src/bin/listBuildFiles.ts",
