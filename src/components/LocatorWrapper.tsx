@@ -52,6 +52,7 @@ export const LocatorWrapper: React.FC = () => {
       <Locator
         data={locatorQuery.data}
         geolocation={{
+          countryCode: geolocationQuery.data?.countryCode || 'US',
           lat: geolocationQuery.data?.lat || 39,
           lng: geolocationQuery.data?.lon || 34,
         }}
