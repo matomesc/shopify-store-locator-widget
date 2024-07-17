@@ -262,7 +262,6 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
         {/* todo */}
 
         {/* List and map container */}
-        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <div style={listAndMapContainerStyle}>
           <MapContainer
             className="neutek-locator-map-container"
