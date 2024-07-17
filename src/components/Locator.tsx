@@ -11,18 +11,6 @@ import { isImperial, roundDistance } from '../lib/utils';
 
 export const defaultMapZoom = 12;
 
-interface ListAndMapContainerProps {
-  $flexDirection: React.CSSProperties['flexDirection'];
-  $justifyContent: React.CSSProperties['justifyContent'];
-}
-
-const ListAndMapContainer = styled.div<ListAndMapContainerProps>`
-  display: flex;
-  gap: 10px;
-  flex-direction: ${(props) => props.$flexDirection};
-  justify-content: ${(props) => props.$justifyContent};
-`;
-
 interface MapContainerProps {
   $borderRadius: string;
   $width: string;
@@ -36,18 +24,6 @@ const MapContainer = styled.div<MapContainerProps>`
   #mainMap > div {
     border-radius: ${(props) => props.$borderRadius};
   }
-`;
-interface ListContainerProps {
-  $width: string;
-  $height?: string;
-}
-
-const ListContainer = styled.div<ListContainerProps>`
-  overflow-x: hidden;
-  overflow-y: auto;
-  width: ${(props) => props.$width};
-  ${(props) => (props.$height ? `height: ${props.$height};` : '')}
-  border: 1px solid black;
 `;
 
 export interface LocatorProps {
@@ -134,17 +110,21 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
     );
   }, [data.searchFilters]);
 
-  let listAndMapContainerProps: ListAndMapContainerProps;
+  let listAndMapContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    gap: '10px',
+  };
 
   if (isSmall) {
-    listAndMapContainerProps = {
-      $flexDirection: 'column',
-      $justifyContent: 'normal',
+    listAndMapContainerStyle = {
+      ...listAndMapContainerStyle,
+      flexDirection: 'column',
     };
   } else {
-    listAndMapContainerProps = {
-      $flexDirection: 'row-reverse',
-      $justifyContent: 'flex-end',
+    listAndMapContainerStyle = {
+      ...listAndMapContainerStyle,
+      flexDirection: 'row-reverse',
+      justifyContent: 'flex-end',
     };
   }
 
@@ -175,16 +155,22 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
     };
   }
 
-  let listContainerProps: ListContainerProps;
+  let listContainerStyle: React.CSSProperties = {
+    overflowX: 'hidden',
+    overflowY: 'auto',
+    border: '1px solid black',
+  };
 
   if (isSmall) {
-    listContainerProps = {
-      $width: '100%',
+    listContainerStyle = {
+      ...listContainerStyle,
+      width: '100%',
     };
   } else {
-    listContainerProps = {
-      $width: '300px',
-      $height: '500px',
+    listContainerStyle = {
+      ...listContainerStyle,
+      width: '300px',
+      height: '500px',
     };
   }
 
@@ -273,7 +259,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
 
         {/* List and map container */}
         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-        <ListAndMapContainer {...listAndMapContainerProps}>
+        <div style={listAndMapContainerStyle}>
           <MapContainer
             className="neutek-locator-map-container"
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -311,10 +297,9 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
               />
             </Map>
           </MapContainer>
-          <ListContainer
+          <div
             className="neutek-locator-list-container"
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...listContainerProps}
+            style={listContainerStyle}
           >
             {locationsWithDistance.slice(0, 100).map((location) => {
               return (
@@ -364,8 +349,8 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                 </div>
               );
             })}
-          </ListContainer>
-        </ListAndMapContainer>
+          </div>
+        </div>
       </div>
     </div>
   );
