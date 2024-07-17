@@ -1,10 +1,11 @@
+import 'reflect-metadata';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import { App } from './App';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(
-  document.getElementById('NeutekLocator') as HTMLElement,
+  document.getElementById('neutek-locator') as HTMLElement,
 );
 root.render(
   <React.StrictMode>

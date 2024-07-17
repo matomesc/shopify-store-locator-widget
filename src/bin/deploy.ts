@@ -33,7 +33,7 @@ function deploy() {
 
     try {
       childProccess.execSync(
-        'AWS_PROFILE=neutek-locator-production aws s3 sync build s3://neutek-locator-widget-production/',
+        'AWS_PROFILE=neutek-locator-production AWS_REGION=us-east-1 aws s3 sync build s3://neutek-locator-widget-production/',
       );
     } catch (err) {
       console.log(err);
@@ -67,7 +67,7 @@ function deploy() {
 
     try {
       childProccess.execSync(
-        'AWS_PROFILE=neutek-locator-staging aws s3 sync build s3://neutek-locator-widget-staging/',
+        'AWS_PROFILE=neutek-locator-staging AWS_REGION=us-east-1 aws s3 sync build s3://neutek-locator-widget-staging/',
       );
     } catch (err) {
       console.log(err);
