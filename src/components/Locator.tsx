@@ -7,7 +7,7 @@ import { SearchBar } from './SearchBar';
 import { GetLocatorOutput } from '../dto/api';
 import { LocationMarkerCluster } from './LocationMarkerCluster';
 import { Address } from './Address';
-import { isImperial, roundDistance } from '../lib/util';
+import { isImperial, roundDistance } from '../lib/utils';
 
 export const defaultMapZoom = 12;
 
