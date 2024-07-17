@@ -43,6 +43,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
       center: { lat: number; lng: number };
       zoom: number;
     };
+    distanceFrom: { lat: number; lng: number };
   }>({
     searchBarValue: '',
     selectedLocation: null,
@@ -54,6 +55,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
       zoom:
         geolocation.lat === 39 && geolocation.lng === 34 ? 2 : defaultMapZoom,
     },
+    distanceFrom: { lat: geolocation.lat, lng: geolocation.lng },
   });
   const map = useMap('mainMap');
   const geocodingLibrary = useMapsLibrary('geocoding');
@@ -65,17 +67,18 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
         setState((prevState) => {
           return {
             ...prevState,
             map: {
               ...prevState.map,
-              center: {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-              },
+              center: { lat, lng },
               zoom: defaultMapZoom,
             },
+            distanceFrom: { lat, lng },
           };
         });
       },
@@ -85,7 +88,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
     );
   }, [map]);
   const locationsWithDistance = useMemo(() => {
-    const from = state.map.center;
+    const from = state.distanceFrom;
 
     return data.locations
       .map((location) => {
@@ -99,7 +102,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
       .sort((locationA, locationB) => {
         return locationA.distance - locationB.distance;
       });
-  }, [data.locations, geometryLibrary, state.map.center]);
+  }, [data.locations, geometryLibrary, state.distanceFrom]);
   const searchFiltersById = useMemo(() => {
     return data.searchFilters.reduce(
       (acc, val) => {
@@ -158,7 +161,6 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
   let listContainerStyle: React.CSSProperties = {
     overflowX: 'hidden',
     overflowY: 'auto',
-    border: '1px solid black',
   };
 
   if (isSmall) {
@@ -231,6 +233,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                         center: { lat, lng },
                         zoom: defaultMapZoom,
                       },
+                      distanceFrom: { lat, lng },
                     };
                   });
                 },
@@ -249,6 +252,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                   center: latLng,
                   zoom: defaultMapZoom,
                 },
+                distanceFrom: latLng,
               };
             });
           }}
@@ -291,8 +295,28 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                     return {
                       ...prevState,
                       selectedLocation: selected,
+                      map: {
+                        ...prevState.map,
+                        ...(selected
+                          ? {
+                              center: {
+                                lat: selected.lat,
+                                lng: selected.lng,
+                              },
+                            }
+                          : {}),
+                      },
                     };
                   });
+
+                  if (selected) {
+                    const listElement = document.querySelector(
+                      `[data-location-id="${selected.id}"]`,
+                    );
+                    if (listElement) {
+                      listElement.scrollIntoView();
+                    }
+                  }
                 }}
               />
             </Map>
@@ -305,12 +329,31 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
               return (
                 <div
                   key={location.id}
+                  data-location-id={location.id}
                   style={{
+                    cursor: 'pointer',
                     display: 'flex',
                     gap: '5px',
                     borderBottom: '1px solid #f6f6f6',
                     paddingTop: '15px',
                     paddingBottom: '15px',
+                    borderLeft:
+                      state.selectedLocation?.id === location.id
+                        ? '5px solid black'
+                        : 'none',
+                  }}
+                  onClick={() => {
+                    setState((prevState) => {
+                      return {
+                        ...prevState,
+                        map: {
+                          ...prevState.map,
+                          center: { lat: location.lat, lng: location.lng },
+                          zoom: defaultMapZoom,
+                        },
+                        selectedLocation: location,
+                      };
+                    });
                   }}
                 >
                   <div
