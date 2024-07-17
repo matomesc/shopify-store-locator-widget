@@ -4,17 +4,17 @@ import { FaMagnifyingGlass } from 'react-icons/fa6';
 import styled from 'styled-components';
 
 const SearchBarButton = styled.button<{
-  color: string;
-  colorHover: string;
-  background: string;
-  backgroundHover: string;
-  borderRadius: string;
+  $color: string;
+  $colorHover: string;
+  $background: string;
+  $backgroundHover: string;
+  $borderRadius: string;
 }>`
   cursor: pointer;
-  border-radius: ${(props) => props.borderRadius};
+  border-radius: ${(props) => props.$borderRadius};
   border: none;
-  color: ${(props) => props.color};
-  background: ${(props) => props.background};
+  color: ${(props) => props.$color};
+  background: ${(props) => props.$background};
   padding: 10px;
   flex-grow: 0;
   display: flex;
@@ -24,22 +24,22 @@ const SearchBarButton = styled.button<{
   width: 40px;
 
   &:hover {
-    background: ${(props) => props.backgroundHover};
-    color: ${(props) => props.colorHover};
+    background: ${(props) => props.$backgroundHover};
+    color: ${(props) => props.$colorHover};
   }
 `;
 
 const SearchBarInput = styled.input<{
-  borderColor: string;
-  borderRadius: string;
+  $borderColor: string;
+  $borderRadius: string;
 }>`
   flex-grow: 1;
   outline: none;
-  border: 1px solid ${(props) => props.borderColor};
+  border: 1px solid ${(props) => props.$borderColor};
   box-shadow: none;
   padding: 5px;
   margin: 0px;
-  border-radius: ${(props) => props.borderRadius};
+  border-radius: ${(props) => props.$borderRadius};
 `;
 
 export interface SearchBarProps {
@@ -91,8 +91,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         ref={inputRef}
         value={value}
         className="neutek-locator-search-bar-input"
-        borderColor="#000000"
-        borderRadius="5px"
+        $borderColor="#000000"
+        $borderRadius="5px"
         onChange={(event) => {
           return onChange(event.target.value);
         }}
@@ -104,11 +104,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       />
       <SearchBarButton
         className="neutek-locator-search-bar-button"
-        color="white"
-        colorHover="white"
-        background="green"
-        backgroundHover="blue"
-        borderRadius="5px"
+        $color="white"
+        $colorHover="white"
+        $background="green"
+        $backgroundHover="blue"
+        $borderRadius="5px"
         onClick={onSearch}
       >
         <FaMagnifyingGlass />

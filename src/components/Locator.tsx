@@ -9,40 +9,40 @@ import { LocationMarkerCluster } from './LocationMarkerCluster';
 export const defaultMapZoom = 12;
 
 interface ListAndMapContainerProps {
-  flexDirection: React.CSSProperties['flexDirection'];
-  justifyContent: React.CSSProperties['justifyContent'];
+  $flexDirection: React.CSSProperties['flexDirection'];
+  $justifyContent: React.CSSProperties['justifyContent'];
 }
 
 const ListAndMapContainer = styled.div<ListAndMapContainerProps>`
   display: flex;
   gap: 10px;
-  flex-direction: ${(props) => props.flexDirection};
-  justify-content: ${(props) => props.justifyContent};
+  flex-direction: ${(props) => props.$flexDirection};
+  justify-content: ${(props) => props.$justifyContent};
 `;
 
 interface MapContainerProps {
-  borderRadius: string;
-  width: string;
+  $borderRadius: string;
+  $width: string;
 }
 
 const MapContainer = styled.div<MapContainerProps>`
-  width: ${(props) => props.width};
+  width: ${(props) => props.$width};
   height: 500px;
 
   /* style the correct div inside the map */
   #mainMap > div {
-    border-radius: ${(props) => props.borderRadius};
+    border-radius: ${(props) => props.$borderRadius};
   }
 `;
 interface ListContainerProps {
-  width: string;
-  height?: string;
+  $width: string;
+  $height?: string;
 }
 
 const ListContainer = styled.div<ListContainerProps>`
   overflow: auto;
-  width: ${(props) => props.width};
-  ${(props) => (props.height ? `height: ${props.height};` : '')}
+  width: ${(props) => props.$width};
+  ${(props) => (props.$height ? `height: ${props.$height};` : '')}
   border: 1px solid black;
 `;
 
@@ -58,11 +58,18 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
   const [state, setState] = useState<{
     searchBarValue: string;
     selectedLocation: GetLocatorOutput['locations'][number] | null;
-    distanceRelativeTo: { lat: number; lng: number } | null;
+    map: {
+      center: { lat: number; lng: number };
+      zoom: number;
+    };
   }>({
     searchBarValue: '',
     selectedLocation: null,
-    distanceRelativeTo: null,
+    map: {
+      center: geolocation,
+      zoom:
+        geolocation.lat === 39 && geolocation.lng === 34 ? 2 : defaultMapZoom,
+    },
   });
   const map = useMap('mainMap');
   const geocodingLibrary = useMapsLibrary('geocoding');
@@ -73,11 +80,19 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        map?.setCenter({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
+        setState((prevState) => {
+          return {
+            ...prevState,
+            map: {
+              ...prevState.map,
+              center: {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+              },
+              zoom: defaultMapZoom,
+            },
+          };
         });
-        map?.setZoom(defaultMapZoom);
       },
       (error) => {
         console.log('geolocation: failed to get current position', error);
@@ -89,40 +104,40 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
 
   if (isSmall) {
     listAndMapContainerProps = {
-      flexDirection: 'column',
-      justifyContent: 'normal',
+      $flexDirection: 'column',
+      $justifyContent: 'normal',
     };
   } else {
     listAndMapContainerProps = {
-      flexDirection: 'row-reverse',
-      justifyContent: 'flex-end',
+      $flexDirection: 'row-reverse',
+      $justifyContent: 'flex-end',
     };
   }
 
   let mapContainerProps: MapContainerProps = {
-    borderRadius: '5px',
-    width: '100%',
+    $borderRadius: '5px',
+    $width: '100%',
   };
 
   if (isXLarge) {
     mapContainerProps = {
       ...mapContainerProps,
-      width: '900px',
+      $width: '900px',
     };
   } else if (isLarge) {
     mapContainerProps = {
       ...mapContainerProps,
-      width: '675px',
+      $width: '675px',
     };
   } else if (isMedium) {
     mapContainerProps = {
       ...mapContainerProps,
-      width: '450px',
+      $width: '450px',
     };
   } else if (isSmall) {
     mapContainerProps = {
       ...mapContainerProps,
-      width: '100%',
+      $width: '100%',
     };
   }
 
@@ -130,12 +145,12 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
 
   if (isSmall) {
     listContainerProps = {
-      width: '100%',
+      $width: '100%',
     };
   } else {
     listContainerProps = {
-      width: '300px',
-      height: '500px',
+      $width: '300px',
+      $height: '500px',
     };
   }
 
@@ -188,8 +203,16 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                   const lat = firstResult.geometry.location.lat();
                   const lng = firstResult.geometry.location.lng();
 
-                  map?.setCenter({ lat, lng });
-                  map?.setZoom(defaultMapZoom);
+                  setState((prevState) => {
+                    return {
+                      ...prevState,
+                      map: {
+                        ...prevState.map,
+                        center: { lat, lng },
+                        zoom: defaultMapZoom,
+                      },
+                    };
+                  });
                 },
               );
             } catch (err) {
@@ -198,8 +221,16 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
             }
           }}
           onPlaceChanged={(latLng) => {
-            map?.setCenter(latLng);
-            map?.setZoom(defaultMapZoom);
+            setState((prevState) => {
+              return {
+                ...prevState,
+                map: {
+                  ...prevState.map,
+                  center: latLng,
+                  zoom: defaultMapZoom,
+                },
+              };
+            });
           }}
         />
 
@@ -217,13 +248,19 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
             <Map
               id="mainMap"
               mapId="mainMap"
-              style={{ borderRadius: '5px' }}
-              defaultCenter={geolocation}
-              defaultZoom={
-                geolocation.lat === 39 && geolocation.lng === 34 ? 2 : 12
-              }
-              onBoundsChanged={(event) => {
-                console.log(event);
+              center={state.map.center}
+              zoom={state.map.zoom}
+              onCameraChanged={(event) => {
+                setState((prevState) => {
+                  return {
+                    ...prevState,
+                    map: {
+                      ...prevState.map,
+                      center: event.detail.center,
+                      zoom: event.detail.zoom,
+                    },
+                  };
+                });
               }}
             >
               <LocationMarkerCluster
