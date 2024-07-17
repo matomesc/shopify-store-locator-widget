@@ -8,6 +8,7 @@ import { GetLocatorOutput } from '../dto/api';
 import { LocationMarkerCluster } from './LocationMarkerCluster';
 import { Address } from './Address';
 import { isImperial, roundDistance } from '../lib/utils';
+import { SearchFilters } from './SearchFilters';
 
 export const defaultMapZoom = 12;
 
@@ -44,6 +45,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
       zoom: number;
     };
     distanceFrom: { lat: number; lng: number };
+    selectedSearchFilters: string[];
   }>({
     searchBarValue: '',
     selectedLocation: null,
@@ -56,6 +58,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
         geolocation.lat === 39 && geolocation.lng === 34 ? 2 : defaultMapZoom,
     },
     distanceFrom: { lat: geolocation.lat, lng: geolocation.lng },
+    selectedSearchFilters: [],
   });
   const map = useMap('mainMap');
   const geocodingLibrary = useMapsLibrary('geocoding');
@@ -87,10 +90,17 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
       },
     );
   }, [map]);
-  const locationsWithDistance = useMemo(() => {
+  const filteredLocationsWithDistance = useMemo(() => {
     const from = state.distanceFrom;
 
     return data.locations
+      .filter((location) => {
+        return state.selectedSearchFilters.every((filterId) => {
+          return location.searchFilters.find(({ id }) => {
+            return id === filterId;
+          });
+        });
+      })
       .map((location) => {
         const to = { lat: location.lat, lng: location.lng };
         // The distance in meters
@@ -102,7 +112,12 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
       .sort((locationA, locationB) => {
         return locationA.distance - locationB.distance;
       });
-  }, [data.locations, geometryLibrary, state.distanceFrom]);
+  }, [
+    data.locations,
+    geometryLibrary,
+    state.distanceFrom,
+    state.selectedSearchFilters,
+  ]);
   const searchFiltersById = useMemo(() => {
     return data.searchFilters.reduce(
       (acc, val) => {
@@ -259,7 +274,18 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
         />
 
         {/* Search filters */}
-        {/* todo */}
+        <SearchFilters
+          searchFilters={data.searchFilters}
+          selected={state.selectedSearchFilters}
+          onSelect={(selected) => {
+            setState((prevState) => {
+              return {
+                ...prevState,
+                selectedSearchFilters: selected,
+              };
+            });
+          }}
+        />
 
         {/* List and map container */}
         <div style={listAndMapContainerStyle}>
@@ -287,7 +313,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
               }}
             >
               <LocationMarkerCluster
-                locations={data.locations}
+                locations={filteredLocationsWithDistance}
                 selectedLocation={state.selectedLocation}
                 onSelect={(selected) => {
                   setState((prevState) => {
@@ -324,7 +350,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
             className="neutek-locator-list-container"
             style={listContainerStyle}
           >
-            {locationsWithDistance.slice(0, 100).map((location) => {
+            {filteredLocationsWithDistance.slice(0, 100).map((location) => {
               return (
                 <div
                   key={location.id}
