@@ -387,7 +387,10 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                       <div style={{ marginTop: '10px' }}>
                         {location.searchFilters.map((searchFilter) => {
                           return (
-                            <div style={{ fontWeight: 'bold' }}>
+                            <div
+                              key={searchFilter.id}
+                              style={{ fontWeight: 'bold' }}
+                            >
                               {searchFiltersById[searchFilter.id].name}
                             </div>
                           );
