@@ -313,7 +313,13 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                     paddingBottom: '15px',
                   }}
                 >
-                  <div style={{ width: '70px', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      overflow: 'hidden',
+                      minWidth: '70px',
+                      flexGrow: 0,
+                    }}
+                  >
                     <div style={{ textAlign: 'center' }}>
                       <FaLocationDot style={{ fill: 'black' }} />
                     </div>
@@ -327,7 +333,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                       {isImperial(geolocation.countryCode) ? 'mi' : 'km'}
                     </div>
                   </div>
-                  <div>
+                  <div style={{ flexGrow: 1 }}>
                     <div style={{ fontWeight: 'bold', color: '#000000' }}>
                       {location.name}
                     </div>
