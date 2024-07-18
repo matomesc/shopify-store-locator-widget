@@ -320,21 +320,11 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                     return {
                       ...prevState,
                       selectedLocation: selected,
-                      map: {
-                        ...prevState.map,
-                        ...(selected
-                          ? {
-                              center: {
-                                lat: selected.lat,
-                                lng: selected.lng,
-                              },
-                            }
-                          : {}),
-                      },
                     };
                   });
 
                   if (selected) {
+                    map?.panTo({ lat: selected.lat, lng: selected.lng });
                     const listElement = document.querySelector(
                       `[data-location-id="${selected.id}"]`,
                     );
@@ -371,14 +361,10 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                     setState((prevState) => {
                       return {
                         ...prevState,
-                        map: {
-                          ...prevState.map,
-                          center: { lat: location.lat, lng: location.lng },
-                          zoom: defaultMapZoom,
-                        },
                         selectedLocation: location,
                       };
                     });
+                    map?.panTo({ lat: location.lat, lng: location.lng });
                   }}
                 >
                   <div
