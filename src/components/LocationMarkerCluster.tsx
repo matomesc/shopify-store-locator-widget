@@ -89,6 +89,7 @@ export const LocationMarkerCluster: React.FC<LocationMarkerClusterProps> = ({
           }}
           disableAutoPan
           shouldFocus={false}
+          style={{}}
         >
           <strong>{selectedLocation.name}</strong>
           <Address location={selectedLocation} />

@@ -25,6 +25,11 @@ const MapContainer = styled.div<MapContainerProps>`
   #mainMap > div {
     border-radius: ${(props) => props.$borderRadius};
   }
+
+  /* remove the blue border that appears on focus */
+  #mainMap .gm-style iframe + div {
+    border: none !important;
+  }
 `;
 
 export interface LocatorProps {
@@ -43,6 +48,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
     map: {
       center: { lat: number; lng: number };
       zoom: number;
+      bounds: google.maps.LatLngBoundsLiteral | null;
     };
     distanceFrom: { lat: number; lng: number };
     selectedSearchFilters: string[];
@@ -56,6 +62,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
       },
       zoom:
         geolocation.lat === 39 && geolocation.lng === 34 ? 2 : defaultMapZoom,
+      bounds: null,
     },
     distanceFrom: { lat: geolocation.lat, lng: geolocation.lng },
     selectedSearchFilters: [],
@@ -63,6 +70,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
   const map = useMap('mainMap');
   const geocodingLibrary = useMapsLibrary('geocoding');
   const geometryLibrary = useMapsLibrary('geometry');
+  const coreLibrary = useMapsLibrary('core');
   const isSmall = useMediaQuery({ query: '(max-width: 750px)' });
   const isMedium = useMediaQuery({ query: '(min-width: 750px)' });
   const isLarge = useMediaQuery({ query: '(min-width: 1000px)' });
@@ -307,9 +315,39 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                       ...prevState.map,
                       center: event.detail.center,
                       zoom: event.detail.zoom,
+                      bounds: event.detail.bounds,
                     },
                   };
                 });
+              }}
+              onIdle={() => {
+                if (
+                  !state.map.bounds ||
+                  !state.selectedLocation ||
+                  !coreLibrary
+                ) {
+                  return;
+                }
+
+                const bounds = new coreLibrary.LatLngBounds(state.map.bounds);
+
+                if (
+                  bounds.contains({
+                    lat: state.selectedLocation.lat,
+                    lng: state.selectedLocation.lng,
+                  })
+                ) {
+                  const listElement = document.querySelector(
+                    `.neutek-locator-list-location[data-location-id="${state.selectedLocation.id}"]`,
+                  );
+                  if (listElement) {
+                    listElement.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'start',
+                      inline: 'nearest',
+                    });
+                  }
+                }
               }}
             >
               <LocationMarkerCluster
@@ -325,12 +363,6 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
 
                   if (selected) {
                     map?.panTo({ lat: selected.lat, lng: selected.lng });
-                    const listElement = document.querySelector(
-                      `[data-location-id="${selected.id}"]`,
-                    );
-                    if (listElement) {
-                      listElement.scrollIntoView();
-                    }
                   }
                 }}
               />
@@ -345,6 +377,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                 <div
                   key={location.id}
                   data-location-id={location.id}
+                  className="neutek-locator-list-location"
                   style={{
                     cursor: 'pointer',
                     display: 'flex',

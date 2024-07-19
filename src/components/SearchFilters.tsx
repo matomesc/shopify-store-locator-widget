@@ -36,6 +36,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
                 ? '2px solid black'
                 : '2px solid transparent',
               cursor: 'pointer',
+              borderRadius: '5px',
             }}
             onClick={() => {
               if (selected.includes(searchFilter.id)) {
