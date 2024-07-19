@@ -99,31 +99,79 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
     );
   }, [map]);
   const filteredLocationsWithDistance = useMemo(() => {
-    const from = state.distanceFrom;
+    if (!geometryLibrary || !coreLibrary || !state.map.bounds) {
+      return data.locations.map((location) => {
+        return { ...location, distance: 0 };
+      });
+    }
 
-    return data.locations
-      .filter((location) => {
-        return state.selectedSearchFilters.every((filterId) => {
-          return location.searchFilters.find(({ id }) => {
-            return id === filterId;
-          });
+    const locationsWithSearchFilters = data.locations.filter((location) => {
+      return state.selectedSearchFilters.every((filterId) => {
+        return location.searchFilters.find(({ id }) => {
+          return id === filterId;
         });
-      })
+      });
+    });
+
+    const bounds = new coreLibrary.LatLngBounds(state.map.bounds);
+
+    const locationsInBounds = locationsWithSearchFilters.filter((location) => {
+      return bounds.contains({ lat: location.lat, lng: location.lng });
+    });
+
+    if (locationsInBounds.length < 20) {
+      const locationsInBoundsSet = new Set(locationsInBounds.map((l) => l.id));
+      const locationsWithDistanceFromCenter = locationsWithSearchFilters
+        .map((location) => {
+          return {
+            ...location,
+            distance: geometryLibrary.spherical.computeDistanceBetween(
+              {
+                lat: state.map.center.lat,
+                lng: state.map.center.lng,
+              },
+              { lat: location.lat, lng: location.lng },
+            ),
+          };
+        })
+        .sort((locationA, locationB) => {
+          return locationA.distance - locationB.distance;
+        });
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const location of locationsWithDistanceFromCenter) {
+        if (locationsInBoundsSet.has(location.id)) {
+          // eslint-disable-next-line no-continue
+          continue;
+        } else {
+          locationsInBounds.push(location);
+          locationsInBoundsSet.add(location.id);
+          if (locationsInBounds.length === 20) {
+            break;
+          }
+        }
+      }
+    }
+
+    return locationsInBounds
       .map((location) => {
-        const to = { lat: location.lat, lng: location.lng };
-        // The distance in meters
-        const distance = geometryLibrary
-          ? geometryLibrary.spherical.computeDistanceBetween(from, to)
-          : 0;
+        const distance = geometryLibrary.spherical.computeDistanceBetween(
+          state.distanceFrom,
+          { lat: location.lat, lng: location.lng },
+        );
         return { ...location, distance };
       })
       .sort((locationA, locationB) => {
         return locationA.distance - locationB.distance;
       });
   }, [
+    coreLibrary,
     data.locations,
     geometryLibrary,
     state.distanceFrom,
+    state.map.bounds,
+    state.map.center.lat,
+    state.map.center.lng,
     state.selectedSearchFilters,
   ]);
   const searchFiltersById = useMemo(() => {
