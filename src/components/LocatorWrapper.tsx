@@ -2,11 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import ky from 'ky';
 import React from 'react';
 import { APIProvider } from '@vis.gl/react-google-maps';
-import { container } from 'tsyringe';
 import { GetLocatorOutput } from '../dto/api';
 import { Locator } from './Locator';
 import { Spinner } from './Spinner';
-import { IpApiService } from '../services/IpApiService';
+import { geolocate } from '../lib/ipApi';
 
 export const LocatorWrapper: React.FC = () => {
   const shopId = window.neutekLocatorId;
@@ -25,9 +24,7 @@ export const LocatorWrapper: React.FC = () => {
     queryKey: ['geolocation'],
     queryFn: async () => {
       try {
-        const ipApiService = container.resolve(IpApiService);
-        const ipData = await ipApiService.get();
-        return ipData;
+        return await geolocate();
       } catch (err) {
         return null;
       }
