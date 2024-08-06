@@ -372,7 +372,8 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                 if (
                   !state.map.bounds ||
                   !state.selectedLocation ||
-                  !coreLibrary
+                  !coreLibrary ||
+                  isSmall
                 ) {
                   return;
                 }
@@ -383,8 +384,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                   bounds.contains({
                     lat: state.selectedLocation.lat,
                     lng: state.selectedLocation.lng,
-                  }) &&
-                  !isSmall
+                  })
                 ) {
                   const listElement = document.querySelector(
                     `.neutek-locator-list-location[data-location-id="${state.selectedLocation.id}"]`,
