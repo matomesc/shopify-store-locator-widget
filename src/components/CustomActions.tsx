@@ -28,6 +28,12 @@ export interface CustomActionsProps {
   location: GetLocatorOutput['locations'][number];
   customActionsById: Record<string, GetLocatorOutput['customActions'][number]>;
   settings: GetLocatorOutput['settings'];
+  translationsById: {
+    targets: Record<string, GetLocatorOutput['translations'][number]>;
+    searchFilters: Record<string, GetLocatorOutput['translations'][number]>;
+    customFields: Record<string, GetLocatorOutput['translations'][number]>;
+    customActions: Record<string, GetLocatorOutput['translations'][number]>;
+  };
 }
 
 export const CustomActions: React.FC<CustomActionsProps> = ({
@@ -35,6 +41,7 @@ export const CustomActions: React.FC<CustomActionsProps> = ({
   location,
   customActionsById,
   settings,
+  translationsById,
 }) => {
   return (
     <div
@@ -91,7 +98,8 @@ export const CustomActions: React.FC<CustomActionsProps> = ({
               }
             }}
           >
-            {customAction.name}
+            {translationsById.customActions[customAction.id]?.value ||
+              customAction.name}
           </Button>
         );
       })}

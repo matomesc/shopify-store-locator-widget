@@ -210,6 +210,34 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
       {} as Record<string, GetLocatorOutput['customActions'][number]>,
     );
   }, [data.customActions]);
+  const translationsById = useMemo(() => {
+    return data.translations.reduce(
+      (acc, val) => {
+        if (val.target) {
+          acc.targets[val.target] = val;
+        } else if (val.searchFilterId) {
+          acc.searchFilters[val.searchFilterId] = val;
+        } else if (val.customFieldId) {
+          acc.customFields[val.customFieldId] = val;
+        } else if (val.customActionId) {
+          acc.customActions[val.customActionId] = val;
+        }
+
+        return acc;
+      },
+      {
+        targets: {},
+        searchFilters: {},
+        customFields: {},
+        customActions: {},
+      } as {
+        targets: Record<string, GetLocatorOutput['translations'][number]>;
+        searchFilters: Record<string, GetLocatorOutput['translations'][number]>;
+        customFields: Record<string, GetLocatorOutput['translations'][number]>;
+        customActions: Record<string, GetLocatorOutput['translations'][number]>;
+      },
+    );
+  }, [data.translations]);
 
   let listAndMapContainerStyle: React.CSSProperties = {
     display: 'flex',
@@ -291,6 +319,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
         <SearchBar
           value={state.searchBarValue}
           settings={data.settings}
+          translationsById={translationsById}
           onChange={(value) => {
             setState((prevState) => {
               return {
@@ -371,6 +400,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
           searchFilters={data.searchFilters}
           selected={state.selectedSearchFilters}
           settings={data.settings}
+          translationsById={translationsById}
           onSelect={(selected) => {
             setState((prevState) => {
               return {
@@ -444,6 +474,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                 customFieldsById={customFieldsById}
                 searchFiltersById={searchFiltersById}
                 customActionsById={customActionsById}
+                translationsById={translationsById}
                 onSelect={(selected) => {
                   setState((prevState) => {
                     return {
@@ -554,6 +585,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                         scope="list"
                         location={location}
                         customFieldsById={customFieldsById}
+                        translationsById={translationsById}
                       />
                     )}
                     {location.searchFilters.length > 0 && (
@@ -562,6 +594,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                         location={location}
                         searchFiltersById={searchFiltersById}
                         settings={data.settings}
+                        translationsById={translationsById}
                       />
                     )}
                     {shouldRenderCustomActions(location, customActionsById) && (
@@ -570,6 +603,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                         location={location}
                         customActionsById={customActionsById}
                         settings={data.settings}
+                        translationsById={translationsById}
                       />
                     )}
                   </div>

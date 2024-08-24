@@ -22,8 +22,7 @@ const SearchBarButton = styled.button<{
   justify-content: center;
   align-items: center;
   height: 40px;
-  display: flex;
-  gap: 5px;
+  width: 40px;
 
   &:hover {
     background: ${(props) => props.$backgroundHover};
@@ -44,6 +43,7 @@ const SearchBarInput = styled.input<{
   padding: 5px;
   margin: 0px;
   border-radius: ${(props) => props.$borderRadius};
+  height: 28px; // 40px - padding - border
 
   &::placeholder {
     color: ${(props) => props.$placeholderColor};
@@ -53,6 +53,12 @@ const SearchBarInput = styled.input<{
 export interface SearchBarProps {
   value: string;
   settings: GetLocatorOutput['settings'];
+  translationsById: {
+    targets: Record<string, GetLocatorOutput['translations'][number]>;
+    searchFilters: Record<string, GetLocatorOutput['translations'][number]>;
+    customFields: Record<string, GetLocatorOutput['translations'][number]>;
+    customActions: Record<string, GetLocatorOutput['translations'][number]>;
+  };
   onChange: (value: string) => void;
   onSearch: () => void;
   onPlaceChanged: (value: { lat: number; lng: number }) => void;
@@ -61,6 +67,7 @@ export interface SearchBarProps {
 export const SearchBar: React.FC<SearchBarProps> = ({
   value,
   settings,
+  translationsById,
   onChange,
   onSearch,
   onPlaceChanged,
@@ -116,7 +123,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         $borderRadius={settings.borderRadius}
         $backgroundColor={settings.searchInputBackgroundColor}
         $placeholderColor={settings.searchInputPlaceholderColor}
-        placeholder="Search addresses, zip codes, cities"
+        placeholder={
+          translationsById.targets.searchInputPlaceholder?.value ||
+          'Search addresses, zip codes, cities'
+        }
         onChange={(event) => {
           return onChange(event.target.value);
         }}
@@ -135,7 +145,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         onClick={onSearch}
       >
         <FaMagnifyingGlass />
-        Search
       </SearchBarButton>
     </div>
   );

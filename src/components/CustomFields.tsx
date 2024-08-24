@@ -36,12 +36,19 @@ export interface CustomFieldsProps {
   scope: 'list' | 'map';
   location: GetLocatorOutput['locations'][number];
   customFieldsById: Record<string, GetLocatorOutput['customFields'][number]>;
+  translationsById: {
+    targets: Record<string, GetLocatorOutput['translations'][number]>;
+    searchFilters: Record<string, GetLocatorOutput['translations'][number]>;
+    customFields: Record<string, GetLocatorOutput['translations'][number]>;
+    customActions: Record<string, GetLocatorOutput['translations'][number]>;
+  };
 }
 
 export const CustomFields: React.FC<CustomFieldsProps> = ({
   scope,
   location,
   customFieldsById,
+  translationsById,
 }) => {
   return (
     <div
@@ -83,7 +90,11 @@ export const CustomFields: React.FC<CustomFieldsProps> = ({
               key={customFieldValue.id}
               className={`neutek-locator-${scope}-location-custom-field`}
             >
-              <div style={{ fontWeight: 'bold' }}>{customField.name}:</div>
+              <div style={{ fontWeight: 'bold' }}>
+                {translationsById.customFields[customField.id]?.value ||
+                  customField.name}
+                :
+              </div>
               <DivValueContainer
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: value }}
@@ -98,7 +109,11 @@ export const CustomFields: React.FC<CustomFieldsProps> = ({
               key={customFieldValue.id}
               className={`neutek-locator-${scope}-location-custom-field`}
             >
-              <span style={{ fontWeight: 'bold' }}>{customField.name}:</span>{' '}
+              <span style={{ fontWeight: 'bold' }}>
+                {translationsById.customFields[customField.id]?.value ||
+                  customField.name}
+                :
+              </span>{' '}
               <DivInlineValueContainer
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: value }}

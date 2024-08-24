@@ -35,6 +35,12 @@ export interface SearchFiltersSelectorProps {
   searchFilters: GetLocatorOutput['searchFilters'];
   selected: string[];
   settings: GetLocatorOutput['settings'];
+  translationsById: {
+    targets: Record<string, GetLocatorOutput['translations'][number]>;
+    searchFilters: Record<string, GetLocatorOutput['translations'][number]>;
+    customFields: Record<string, GetLocatorOutput['translations'][number]>;
+    customActions: Record<string, GetLocatorOutput['translations'][number]>;
+  };
   onSelect: (selected: string[]) => void;
 }
 
@@ -42,6 +48,7 @@ export const SearchFiltersSelector: React.FC<SearchFiltersSelectorProps> = ({
   searchFilters,
   selected,
   settings,
+  translationsById,
   onSelect,
 }) => {
   return (
@@ -75,7 +82,8 @@ export const SearchFiltersSelector: React.FC<SearchFiltersSelectorProps> = ({
               }
             }}
           >
-            {searchFilter.name}
+            {translationsById.searchFilters[searchFilter.id]?.value ||
+              searchFilter.name}
           </SearchFilter>
         );
       })}

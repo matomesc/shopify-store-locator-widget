@@ -20,6 +20,12 @@ export interface LocationMarkerClusterProps {
   customFieldsById: Record<string, GetLocatorOutput['customFields'][number]>;
   searchFiltersById: Record<string, GetLocatorOutput['searchFilters'][number]>;
   customActionsById: Record<string, GetLocatorOutput['customActions'][number]>;
+  translationsById: {
+    targets: Record<string, GetLocatorOutput['translations'][number]>;
+    searchFilters: Record<string, GetLocatorOutput['translations'][number]>;
+    customFields: Record<string, GetLocatorOutput['translations'][number]>;
+    customActions: Record<string, GetLocatorOutput['translations'][number]>;
+  };
   onSelect: (location: GetLocatorOutput['locations'][number] | null) => void;
 }
 
@@ -30,6 +36,7 @@ export const LocationMarkerCluster: React.FC<LocationMarkerClusterProps> = ({
   customFieldsById,
   searchFiltersById,
   customActionsById,
+  translationsById,
   onSelect,
 }) => {
   const [state, setState] = useState<{
@@ -175,6 +182,7 @@ export const LocationMarkerCluster: React.FC<LocationMarkerClusterProps> = ({
                 scope="map"
                 location={selectedLocation}
                 customFieldsById={customFieldsById}
+                translationsById={translationsById}
               />
             )}
             {selectedLocation.searchFilters.length > 0 && (
@@ -183,6 +191,7 @@ export const LocationMarkerCluster: React.FC<LocationMarkerClusterProps> = ({
                 location={selectedLocation}
                 searchFiltersById={searchFiltersById}
                 settings={settings}
+                translationsById={translationsById}
               />
             )}
             {shouldRenderCustomActions(selectedLocation, customActionsById) && (
@@ -191,6 +200,7 @@ export const LocationMarkerCluster: React.FC<LocationMarkerClusterProps> = ({
                 location={selectedLocation}
                 customActionsById={customActionsById}
                 settings={settings}
+                translationsById={translationsById}
               />
             )}
           </div>
