@@ -1,49 +1,41 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { GetLocatorOutput } from '../dto/api';
 
 export interface SearchFiltersProps {
-  searchFilters: GetLocatorOutput['searchFilters'];
-  selected: string[];
-  onSelect: (selected: string[]) => void;
+  scope: 'list' | 'map';
+  location: GetLocatorOutput['locations'][number];
+  searchFiltersById: Record<string, GetLocatorOutput['searchFilters'][number]>;
+  settings: GetLocatorOutput['settings'];
 }
 
 export const SearchFilters: React.FC<SearchFiltersProps> = ({
-  searchFilters,
-  selected,
-  onSelect,
+  scope,
+  location,
+  searchFiltersById,
+  settings,
 }) => {
-  const searchFiltersSorted = useMemo(() => {
-    return searchFilters.sort((searchFilterA, searchFilterB) => {
-      return searchFilterA.position - searchFilterB.position;
-    });
-  }, [searchFilters]);
-
   return (
-    <div
-      className="neutek-locator-search-filters"
-      style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}
-    >
-      {searchFiltersSorted.map((searchFilter) => {
+    <div className={`neutek-locator-${scope}-location-search-filters`}>
+      {location.searchFilters.map((searchFilterId) => {
+        const searchFilter = searchFiltersById[searchFilterId];
+
+        if (
+          (scope === 'list' && !searchFilter.showInList) ||
+          (scope === 'map' && !searchFilter.showInMap)
+        ) {
+          return null;
+        }
+
         return (
-          // eslint-disable-next-line jsx-a11y/label-has-associated-control
           <div
-            key={searchFilter.id}
-            className="neutek-locator-search-filter"
+            key={searchFilterId}
+            className={`neutek-locator-${scope}-location-search-filter`}
             style={{
-              padding: '5px',
-              background: '#eeeeee',
-              border: selected.includes(searchFilter.id)
-                ? '2px solid black'
-                : '2px solid transparent',
-              cursor: 'pointer',
-              borderRadius: '5px',
-            }}
-            onClick={() => {
-              if (selected.includes(searchFilter.id)) {
-                onSelect(selected.filter((id) => id !== searchFilter.id));
-              } else {
-                onSelect([...selected, searchFilter.id]);
-              }
+              fontWeight: 'bold',
+              color:
+                scope === 'list'
+                  ? settings.listSearchFilterColor
+                  : settings.mapSearchFilterColor,
             }}
           >
             {searchFilter.name}

@@ -7,8 +7,17 @@ import { SearchBar } from './SearchBar';
 import { GetLocatorOutput } from '../dto/api';
 import { LocationMarkerCluster } from './LocationMarkerCluster';
 import { Address } from './Address';
-import { isImperial, roundDistance } from '../lib/utils';
+import {
+  isImperial,
+  roundDistance,
+  shouldRenderCustomActions,
+  shouldRenderCustomFields,
+} from '../lib/utils';
+import { SearchFiltersSelector } from './SearchFiltersSelector';
+import { Contact } from './Contact';
 import { SearchFilters } from './SearchFilters';
+import { CustomFields } from './CustomFields';
+import { CustomActions } from './CustomActions';
 
 export const defaultMapZoom = 12;
 
@@ -107,8 +116,8 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
 
     const locationsWithSearchFilters = data.locations.filter((location) => {
       return state.selectedSearchFilters.every((filterId) => {
-        return location.searchFilters.find(({ id }) => {
-          return id === filterId;
+        return location.searchFilters.find((searchFilterId) => {
+          return searchFilterId === filterId;
         });
       });
     });
@@ -183,6 +192,24 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
       {} as Record<string, GetLocatorOutput['searchFilters'][number]>,
     );
   }, [data.searchFilters]);
+  const customFieldsById = useMemo(() => {
+    return data.customFields.reduce(
+      (acc, val) => {
+        acc[val.id] = val;
+        return acc;
+      },
+      {} as Record<string, GetLocatorOutput['customFields'][number]>,
+    );
+  }, [data.customFields]);
+  const customActionsById = useMemo(() => {
+    return data.customActions.reduce(
+      (acc, val) => {
+        acc[val.id] = val;
+        return acc;
+      },
+      {} as Record<string, GetLocatorOutput['customActions'][number]>,
+    );
+  }, [data.customActions]);
 
   let listAndMapContainerStyle: React.CSSProperties = {
     display: 'flex',
@@ -203,7 +230,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
   }
 
   let mapContainerProps: MapContainerProps = {
-    $borderRadius: '5px',
+    $borderRadius: data.settings.borderRadius,
     $width: '100%',
   };
 
@@ -263,6 +290,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
         {/* Search bar */}
         <SearchBar
           value={state.searchBarValue}
+          settings={data.settings}
           onChange={(value) => {
             setState((prevState) => {
               return {
@@ -276,6 +304,14 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
             if (!geocodingLibrary) {
               return;
             }
+
+            setState((prevState) => {
+              return {
+                ...prevState,
+                selectedLocation: null,
+              };
+            });
+
             const geocoder = new geocodingLibrary.Geocoder();
 
             try {
@@ -324,15 +360,17 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                   zoom: defaultMapZoom,
                 },
                 distanceFrom: latLng,
+                selectedLocation: null,
               };
             });
           }}
         />
 
         {/* Search filters */}
-        <SearchFilters
+        <SearchFiltersSelector
           searchFilters={data.searchFilters}
           selected={state.selectedSearchFilters}
+          settings={data.settings}
           onSelect={(selected) => {
             setState((prevState) => {
               return {
@@ -402,6 +440,10 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
               <LocationMarkerCluster
                 locations={filteredLocationsWithDistance}
                 selectedLocation={state.selectedLocation}
+                settings={data.settings}
+                customFieldsById={customFieldsById}
+                searchFiltersById={searchFiltersById}
+                customActionsById={customActionsById}
                 onSelect={(selected) => {
                   setState((prevState) => {
                     return {
@@ -434,9 +476,10 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                     borderBottom: '1px solid #f6f6f6',
                     paddingTop: '15px',
                     paddingBottom: '15px',
+                    paddingRight: '5px',
                     borderLeft:
                       state.selectedLocation?.id === location.id
-                        ? '5px solid black'
+                        ? `5px solid ${data.settings.listSelectedLocationBorderColor}`
                         : 'none',
                   }}
                   onClick={() => {
@@ -457,9 +500,16 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                     }}
                   >
                     <div style={{ textAlign: 'center' }}>
-                      <FaLocationDot style={{ fill: 'black' }} />
+                      <FaLocationDot
+                        style={{ color: data.settings.listPinAndDistanceColor }}
+                      />
                     </div>
-                    <div style={{ textAlign: 'center' }}>
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        color: data.settings.listPinAndDistanceColor,
+                      }}
+                    >
                       {roundDistance(
                         isImperial(geolocation.countryCode)
                           ? location.distance * 0.000621371 // meters -> miles
@@ -469,26 +519,58 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                       {isImperial(geolocation.countryCode) ? 'mi' : 'km'}
                     </div>
                   </div>
-                  <div style={{ flexGrow: 1 }}>
-                    <div style={{ fontWeight: 'bold', color: '#000000' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '10px',
+                      flexDirection: 'column',
+                      flexGrow: 1,
+                      color: data.settings.listTextColor,
+                    }}
+                  >
+                    <div
+                      className="neutek-locator-list-location-name"
+                      style={{
+                        fontWeight: 'bold',
+                        color: data.settings.listLocationNameColor,
+                      }}
+                    >
                       {location.name}
                     </div>
-                    <div>
-                      <Address location={location} />
-                    </div>
+                    <Address
+                      scope="list"
+                      location={location}
+                      settings={data.settings}
+                    />
+                    {(location.phone || location.email || location.website) && (
+                      <Contact
+                        scope="list"
+                        location={location}
+                        settings={data.settings}
+                      />
+                    )}
+                    {shouldRenderCustomFields(location, customFieldsById) && (
+                      <CustomFields
+                        scope="list"
+                        location={location}
+                        customFieldsById={customFieldsById}
+                      />
+                    )}
                     {location.searchFilters.length > 0 && (
-                      <div style={{ marginTop: '10px' }}>
-                        {location.searchFilters.map((searchFilter) => {
-                          return (
-                            <div
-                              key={searchFilter.id}
-                              style={{ fontWeight: 'bold' }}
-                            >
-                              {searchFiltersById[searchFilter.id].name}
-                            </div>
-                          );
-                        })}
-                      </div>
+                      <SearchFilters
+                        scope="list"
+                        location={location}
+                        searchFiltersById={searchFiltersById}
+                        settings={data.settings}
+                      />
+                    )}
+                    {shouldRenderCustomActions(location, customActionsById) && (
+                      <CustomActions
+                        scope="list"
+                        location={location}
+                        customActionsById={customActionsById}
+                        settings={data.settings}
+                      />
                     )}
                   </div>
                 </div>

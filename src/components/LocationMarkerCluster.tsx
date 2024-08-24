@@ -4,22 +4,42 @@ import { InfoWindow, useMap } from '@vis.gl/react-google-maps';
 import { GetLocatorOutput } from '../dto/api';
 import { LocationMarker } from './LocationMarker';
 import { Address } from './Address';
+import { Contact } from './Contact';
+import { CustomFields } from './CustomFields';
+import {
+  shouldRenderCustomActions,
+  shouldRenderCustomFields,
+} from '../lib/utils';
+import { SearchFilters } from './SearchFilters';
+import { CustomActions } from './CustomActions';
 
 export interface LocationMarkerClusterProps {
   locations: GetLocatorOutput['locations'];
   selectedLocation: GetLocatorOutput['locations'][number] | null;
+  settings: GetLocatorOutput['settings'];
+  customFieldsById: Record<string, GetLocatorOutput['customFields'][number]>;
+  searchFiltersById: Record<string, GetLocatorOutput['searchFilters'][number]>;
+  customActionsById: Record<string, GetLocatorOutput['customActions'][number]>;
   onSelect: (location: GetLocatorOutput['locations'][number] | null) => void;
 }
 
 export const LocationMarkerCluster: React.FC<LocationMarkerClusterProps> = ({
   locations,
   selectedLocation,
+  settings,
+  customFieldsById,
+  searchFiltersById,
+  customActionsById,
   onSelect,
 }) => {
   const [state, setState] = useState<{
     markers: Record<string, Marker>;
+    fontFamily: string | null;
+    fontSize: string | null;
   }>({
     markers: {},
+    fontFamily: null,
+    fontSize: null,
   });
   const map = useMap('mainMap');
   const clusterer = useMemo(() => {
@@ -68,6 +88,28 @@ export const LocationMarkerCluster: React.FC<LocationMarkerClusterProps> = ({
     [onSelect],
   );
 
+  // Get the font family used in the container and apply it to the info window
+  useEffect(() => {
+    const container =
+      document.querySelector<HTMLDivElement>('.neutek-locator-container') ||
+      document.body;
+    const testDiv = document.createElement('div');
+
+    container.append(testDiv);
+
+    const { fontFamily, fontSize } = getComputedStyle(testDiv);
+
+    container.removeChild(testDiv);
+
+    setState((prevState) => {
+      return {
+        ...prevState,
+        fontFamily,
+        fontSize,
+      };
+    });
+  }, []);
+
   return (
     <>
       {locations.map((location) => {
@@ -87,12 +129,71 @@ export const LocationMarkerCluster: React.FC<LocationMarkerClusterProps> = ({
           onCloseClick={() => {
             onSelect(null);
           }}
-          disableAutoPan
+          maxWidth={300}
+          // disableAutoPan
           shouldFocus={false}
-          style={{}}
+          style={{ maxHeight: '300px' }}
         >
-          <strong>{selectedLocation.name}</strong>
-          <Address location={selectedLocation} />
+          <div
+            className="neutek-locator-map-location"
+            style={{
+              display: 'flex',
+              gap: '10px',
+              flexDirection: 'column',
+              flexGrow: 1,
+              color: settings.mapTextColor,
+              maxHeight: '300px',
+              fontFamily: state.fontFamily || 'inherit',
+              fontSize: state.fontSize || 'inherit',
+            }}
+          >
+            <div
+              className="neutek-locator-map-location-name"
+              style={{
+                fontWeight: 'bold',
+                color: settings.mapLocationNameColor,
+              }}
+            >
+              {selectedLocation.name}
+            </div>
+            <Address
+              scope="map"
+              location={selectedLocation}
+              settings={settings}
+            />
+            {(selectedLocation.phone ||
+              selectedLocation.email ||
+              selectedLocation.website) && (
+              <Contact
+                scope="map"
+                location={selectedLocation}
+                settings={settings}
+              />
+            )}
+            {shouldRenderCustomFields(selectedLocation, customFieldsById) && (
+              <CustomFields
+                scope="map"
+                location={selectedLocation}
+                customFieldsById={customFieldsById}
+              />
+            )}
+            {selectedLocation.searchFilters.length > 0 && (
+              <SearchFilters
+                scope="map"
+                location={selectedLocation}
+                searchFiltersById={searchFiltersById}
+                settings={settings}
+              />
+            )}
+            {shouldRenderCustomActions(selectedLocation, customActionsById) && (
+              <CustomActions
+                scope="map"
+                location={selectedLocation}
+                customActionsById={customActionsById}
+                settings={settings}
+              />
+            )}
+          </div>
         </InfoWindow>
       )}
     </>
