@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-redeclare */
+import { z } from 'zod';
+
 export type GetLocatorOutput = {
   ok: boolean;
   settings: {
@@ -102,4 +105,50 @@ export type GetLocatorOutput = {
     customFieldId: string | null;
     customActionId: string | null;
   }>;
+};
+
+export const PostSessionsInput = z.object({
+  id: z.string(),
+  shopId: z.string(),
+  ip: z.string(),
+  country: z.string(),
+  countryCode: z.string(),
+  region: z.string(),
+  regionName: z.string(),
+  city: z.string(),
+  zip: z.string(),
+  ipGeolocationLat: z.number(),
+  ipGeolocationLng: z.number(),
+  browserGeolocationLat: z.number().nullable(),
+  browserGeolocationLng: z.number().nullable(),
+  language: z.string(),
+  mobile: z.boolean(),
+});
+export type PostSessionsInput = z.infer<typeof PostSessionsInput>;
+
+export type PostSessionsOutput = {
+  ok: boolean;
+};
+
+export const PutSessionsInput = z.object({
+  id: z.string(),
+  browserGeolocationLat: z.number(),
+  browserGeolocationLng: z.number(),
+});
+export type PutSessionsInput = z.infer<typeof PutSessionsInput>;
+
+export type PutSessionsOutput = {
+  ok: boolean;
+};
+
+export const PostSearchEventsInput = z.object({
+  sessionId: z.string(),
+  query: z.string(),
+  lat: z.number(),
+  lng: z.number(),
+});
+export type PostSearchEventsInput = z.infer<typeof PostSearchEventsInput>;
+
+export type PostSearchEventsOutput = {
+  ok: boolean;
 };

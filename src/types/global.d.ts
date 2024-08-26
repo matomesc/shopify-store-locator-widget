@@ -1,6 +1,6 @@
 declare global {
   interface Window {
-    neutekLocatorId?: string;
+    neutekLocatorId: string;
   }
 }
 

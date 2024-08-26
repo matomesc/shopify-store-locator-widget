@@ -61,7 +61,11 @@ export interface SearchBarProps {
   };
   onChange: (value: string) => void;
   onSearch: () => void;
-  onPlaceChanged: (value: { lat: number; lng: number }) => void;
+  onPlaceChanged: (value: {
+    lat: number;
+    lng: number;
+    address: string;
+  }) => void;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
@@ -105,6 +109,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       onPlaceChanged({
         lat: place.geometry.location.lat(),
         lng: place.geometry.location.lng(),
+        address: place.formatted_address,
       });
     });
   }, [onChange, onPlaceChanged, placesLibrary]);

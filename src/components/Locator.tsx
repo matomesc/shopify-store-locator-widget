@@ -3,8 +3,16 @@ import { useMediaQuery } from 'react-responsive';
 import { Map, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import styled from 'styled-components';
 import { FaLocationDot } from 'react-icons/fa6';
+import { useMutation } from '@tanstack/react-query';
+import ky from 'ky';
 import { SearchBar } from './SearchBar';
-import { GetLocatorOutput } from '../dto/api';
+import {
+  GetLocatorOutput,
+  PostSearchEventsInput,
+  PostSearchEventsOutput,
+  PutSessionsInput,
+  PutSessionsOutput,
+} from '../dto/api';
 import { LocationMarkerCluster } from './LocationMarkerCluster';
 import { Address } from './Address';
 import {
@@ -18,6 +26,7 @@ import { Contact } from './Contact';
 import { SearchFilters } from './SearchFilters';
 import { CustomFields } from './CustomFields';
 import { CustomActions } from './CustomActions';
+import { useAppStore } from '../stores/appStore';
 
 export const defaultMapZoom = 12;
 
@@ -51,6 +60,7 @@ export interface LocatorProps {
 }
 
 export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
+  const sessionId = useAppStore((state) => state.sessionId);
   const [state, setState] = useState<{
     searchBarValue: string;
     selectedLocation: GetLocatorOutput['locations'][number] | null;
@@ -84,6 +94,24 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
   const isMedium = useMediaQuery({ query: '(min-width: 750px)' });
   const isLarge = useMediaQuery({ query: '(min-width: 1000px)' });
   const isXLarge = useMediaQuery({ query: '(min-width: 1260px)' });
+  const { mutateAsync: putSessionsMutateAsync } = useMutation({
+    mutationFn: async (input: PutSessionsInput) => {
+      return ky
+        .put(`${process.env.REACT_APP_API_URL}/sessions`, {
+          json: input,
+        })
+        .json<PutSessionsOutput>();
+    },
+  });
+  const { mutateAsync: postSearchEventsMutateAsync } = useMutation({
+    mutationFn: async (input: PostSearchEventsInput) => {
+      return ky
+        .post(`${process.env.REACT_APP_API_URL}/searchEvents`, {
+          json: input,
+        })
+        .json<PostSearchEventsOutput>();
+    },
+  });
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -101,12 +129,24 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
             distanceFrom: { lat, lng },
           };
         });
+
+        if (sessionId) {
+          putSessionsMutateAsync({
+            id: sessionId,
+            browserGeolocationLat: lat,
+            browserGeolocationLng: lng,
+          }).catch((err) => {
+            console.log('Failed to update session');
+            console.log(err);
+          });
+        }
       },
       (error) => {
-        console.log('geolocation: failed to get current position', error);
+        console.log('Browser geolocation: failed to get current position:');
+        console.log(error);
       },
     );
-  }, [map]);
+  }, [map, putSessionsMutateAsync, sessionId]);
   const filteredLocationsWithDistance = useMemo(() => {
     if (!geometryLibrary || !coreLibrary || !state.map.bounds) {
       return data.locations.map((location) => {
@@ -372,6 +412,18 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                       distanceFrom: { lat, lng },
                     };
                   });
+
+                  if (sessionId) {
+                    postSearchEventsMutateAsync({
+                      sessionId,
+                      query: state.searchBarValue,
+                      lat,
+                      lng,
+                    }).catch((err) => {
+                      console.log('Failed to create search event:');
+                      console.log(err);
+                    });
+                  }
                 },
               );
             } catch (err) {
@@ -379,19 +431,31 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
               // callback
             }
           }}
-          onPlaceChanged={(latLng) => {
+          onPlaceChanged={({ lat, lng, address }) => {
             setState((prevState) => {
               return {
                 ...prevState,
                 map: {
                   ...prevState.map,
-                  center: latLng,
+                  center: { lat, lng },
                   zoom: defaultMapZoom,
                 },
-                distanceFrom: latLng,
+                distanceFrom: { lat, lng },
                 selectedLocation: null,
               };
             });
+
+            if (sessionId) {
+              postSearchEventsMutateAsync({
+                sessionId,
+                query: address,
+                lat,
+                lng,
+              }).catch((err) => {
+                console.log('Failed to create search event:');
+                console.log(err);
+              });
+            }
           }}
         />
 
