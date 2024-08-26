@@ -8,6 +8,8 @@ import ky from 'ky';
 import { SearchBar } from './SearchBar';
 import {
   GetLocatorOutput,
+  PostLocationClickEventsInput,
+  PostLocationClickEventsOutput,
   PostSearchEventsInput,
   PostSearchEventsOutput,
   PutSessionsInput,
@@ -110,6 +112,15 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
           json: input,
         })
         .json<PostSearchEventsOutput>();
+    },
+  });
+  const { mutateAsync: postLocationClickEventsMutateAsync } = useMutation({
+    mutationFn: async (input: PostLocationClickEventsInput) => {
+      return ky
+        .post(`${process.env.REACT_APP_API_URL}/locationClickEvents`, {
+          json: input,
+        })
+        .json<PostLocationClickEventsOutput>();
     },
   });
   useEffect(() => {
@@ -549,6 +560,16 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
 
                   if (selected) {
                     map?.panTo({ lat: selected.lat, lng: selected.lng });
+
+                    if (sessionId) {
+                      postLocationClickEventsMutateAsync({
+                        sessionId,
+                        locationId: selected.id,
+                      }).catch((err) => {
+                        console.log('Failed to create location click event:');
+                        console.log(err);
+                      });
+                    }
                   }
                 }}
               />
@@ -585,6 +606,16 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                       };
                     });
                     map?.panTo({ lat: location.lat, lng: location.lng });
+
+                    if (sessionId) {
+                      postLocationClickEventsMutateAsync({
+                        sessionId,
+                        locationId: location.id,
+                      }).catch((err) => {
+                        console.log('Failed to create location click event:');
+                        console.log(err);
+                      });
+                    }
                   }}
                 >
                   <div

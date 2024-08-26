@@ -152,3 +152,15 @@ export type PostSearchEventsInput = z.infer<typeof PostSearchEventsInput>;
 export type PostSearchEventsOutput = {
   ok: boolean;
 };
+
+export const PostLocationClickEventsInput = z.object({
+  sessionId: z.string(),
+  locationId: z.string(),
+});
+export type PostLocationClickEventsInput = z.infer<
+  typeof PostLocationClickEventsInput
+>;
+
+export type PostLocationClickEventsOutput = {
+  ok: boolean;
+};
