@@ -15,7 +15,7 @@ import { useAppStore } from '../stores/appStore';
 
 export const LocatorWrapper: React.FC = () => {
   const shopId = window.neutekLocatorId;
-  const { language } = window.navigator;
+  const { language, userAgent } = window.navigator;
   const setSessionId = useAppStore((state) => state.setSessionId);
   const locatorQuery = useQuery({
     queryKey: ['locator'],
@@ -81,6 +81,7 @@ export const LocatorWrapper: React.FC = () => {
         browserGeolocationLng: null,
         language,
         mobile: geolocationQueryData.mobile,
+        userAgent,
       });
 
       if (output.ok) {
@@ -100,6 +101,7 @@ export const LocatorWrapper: React.FC = () => {
     language,
     shopId,
     postSessionsMutateAsync,
+    userAgent,
   ]);
 
   if (locatorQuery.isPending || geolocationQuery.isPending) {

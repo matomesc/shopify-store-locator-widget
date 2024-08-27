@@ -52,6 +52,40 @@ const MapContainer = styled.div<MapContainerProps>`
   }
 `;
 
+function extractAddressComponents(
+  addressComponents: google.maps.GeocoderAddressComponent[],
+) {
+  const streetNumber = addressComponents.find((c) => {
+    return c.types.includes('street_number');
+  });
+  const street = addressComponents.find((c) => {
+    return c.types.includes('route');
+  });
+  const city = addressComponents.find((c) => {
+    return c.types.includes('locality');
+  });
+  const state = addressComponents.find((c) => {
+    return c.types.includes('administrative_area_level_1');
+  });
+  const zip = addressComponents.find((c) => {
+    return c.types.includes('postal_code');
+  });
+  const country = addressComponents.find((c) => {
+    return c.types.includes('country');
+  });
+
+  return {
+    address:
+      `${streetNumber?.short_name || ''} ${street?.long_name || ''}`.trim(),
+    city: city?.long_name || '',
+    state: state?.long_name || '',
+    stateCode: state?.short_name || '',
+    zip: zip?.short_name || '',
+    country: country?.long_name || '',
+    countryCode: country?.short_name || '',
+  };
+}
+
 export interface LocatorProps {
   data: GetLocatorOutput;
   geolocation: {
@@ -408,7 +442,6 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                     return;
                   }
                   const [firstResult] = result;
-
                   const lat = firstResult.geometry.location.lat();
                   const lng = firstResult.geometry.location.lng();
 
@@ -425,9 +458,20 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
                   });
 
                   if (sessionId) {
+                    const addressComponents = extractAddressComponents(
+                      firstResult.address_components,
+                    );
+
                     postSearchEventsMutateAsync({
                       sessionId,
                       query: state.searchBarValue,
+                      address: addressComponents.address,
+                      city: addressComponents.city,
+                      state: addressComponents.state,
+                      stateCode: addressComponents.stateCode,
+                      zip: addressComponents.zip,
+                      country: addressComponents.country,
+                      countryCode: addressComponents.countryCode,
                       lat,
                       lng,
                     }).catch((err) => {
@@ -442,7 +486,7 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
               // callback
             }
           }}
-          onPlaceChanged={({ lat, lng, address }) => {
+          onPlaceChanged={({ lat, lng, query, addressComponents }) => {
             setState((prevState) => {
               return {
                 ...prevState,
@@ -457,9 +501,18 @@ export const Locator: React.FC<LocatorProps> = ({ data, geolocation }) => {
             });
 
             if (sessionId) {
+              const extractedAddressComponents =
+                extractAddressComponents(addressComponents);
               postSearchEventsMutateAsync({
                 sessionId,
-                query: address,
+                query,
+                address: extractedAddressComponents.address,
+                city: extractedAddressComponents.city,
+                state: extractedAddressComponents.state,
+                stateCode: extractedAddressComponents.stateCode,
+                zip: extractedAddressComponents.zip,
+                country: extractedAddressComponents.country,
+                countryCode: extractedAddressComponents.countryCode,
                 lat,
                 lng,
               }).catch((err) => {

@@ -64,7 +64,8 @@ export interface SearchBarProps {
   onPlaceChanged: (value: {
     lat: number;
     lng: number;
-    address: string;
+    query: string;
+    addressComponents: google.maps.GeocoderAddressComponent[];
   }) => void;
 }
 
@@ -91,7 +92,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     // See for full list of fields: https://developers.google.com/maps/documentation/javascript/places#place_search_fields
     autocompleteRef.current.setFields([
       'geometry',
-      'formatted_address' /* 'address_components' */,
+      'formatted_address',
+      'address_components',
     ]);
     autocompleteRef.current.addListener('place_changed', () => {
       const place = autocompleteRef.current?.getPlace();
@@ -99,7 +101,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         !place ||
         !place.geometry ||
         !place.geometry.location ||
-        !place.formatted_address
+        !place.formatted_address ||
+        !place.address_components
       ) {
         return;
       }
@@ -109,7 +112,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       onPlaceChanged({
         lat: place.geometry.location.lat(),
         lng: place.geometry.location.lng(),
-        address: place.formatted_address,
+        query: place.formatted_address,
+        addressComponents: place.address_components,
       });
     });
   }, [onChange, onPlaceChanged, placesLibrary]);
