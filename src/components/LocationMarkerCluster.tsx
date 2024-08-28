@@ -124,6 +124,7 @@ export const LocationMarkerCluster: React.FC<LocationMarkerClusterProps> = ({
           <LocationMarker
             key={location.id}
             location={location}
+            settings={settings}
             onClick={handleMarkerClick}
             setMarkerRef={setMarkerRef}
           />

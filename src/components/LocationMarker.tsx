@@ -1,16 +1,18 @@
 import React, { useCallback } from 'react';
 import { Marker } from '@googlemaps/markerclusterer';
-import { AdvancedMarker } from '@vis.gl/react-google-maps';
+import { AdvancedMarker, Pin } from '@vis.gl/react-google-maps';
 import { GetLocatorOutput } from '../dto/api';
 
 export interface LocationMarkerProps {
   location: GetLocatorOutput['locations'][number];
+  settings: GetLocatorOutput['settings'];
   onClick: (location: GetLocatorOutput['locations'][number]) => void;
   setMarkerRef: (marker: Marker | null, key: string) => void;
 }
 
 export const LocationMarker: React.FC<LocationMarkerProps> = ({
   location,
+  settings,
   onClick,
   setMarkerRef,
 }) => {
@@ -27,6 +29,20 @@ export const LocationMarker: React.FC<LocationMarkerProps> = ({
       ref={ref}
       onClick={handleClick}
     >
+      {settings.mapMarkerType === 'pin' && (
+        <Pin
+          background={settings.mapMarkerBackgroundColor}
+          borderColor={settings.mapMarkerBorderColor}
+          glyphColor={settings.mapMarkerGlyphColor}
+        />
+      )}
+      {settings.mapMarkerType === 'image' && (
+        <img
+          alt=""
+          src={settings.mapMarkerImage}
+          style={{ width: '32px', height: '32px' }}
+        />
+      )}
       {/* <span className="marker-clustering-tree">🌳</span> */}
     </AdvancedMarker>
   );
