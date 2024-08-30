@@ -43,7 +43,7 @@ const SearchBarInput = styled.input<{
   padding: 5px;
   margin: 0px;
   border-radius: ${(props) => props.$borderRadius};
-  height: 28px; // 40px - padding - border
+  line-height: 28px; // 40px - padding - border
 
   &::placeholder {
     color: ${(props) => props.$placeholderColor};
