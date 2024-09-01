@@ -10,7 +10,7 @@ function isExecError(err: unknown): err is { stdout: Buffer; stderr: Buffer } {
 function deploy() {
   if (process.argv[2] === 'production') {
     try {
-      childProccess.execSync('yarn build');
+      childProccess.execSync('yarn build:production');
     } catch (err) {
       console.log(err);
       if (isExecError(err)) {
