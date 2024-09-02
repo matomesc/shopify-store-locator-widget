@@ -50,6 +50,11 @@ const MapContainer = styled.div<MapContainerProps>`
   #mainMap .gm-style iframe + div {
     border: none !important;
   }
+
+  /* make the header close button aligned to the right */
+  #mainMap .gm-style-iw-chr {
+    justify-content: flex-end;
+  }
 `;
 
 function extractAddressComponents(
