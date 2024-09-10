@@ -140,7 +140,7 @@ export const LocationMarkerCluster: React.FC<LocationMarkerClusterProps> = ({
           maxWidth={300}
           // disableAutoPan
           shouldFocus={false}
-          style={{ maxHeight: '300px' }}
+          style={{ maxHeight: '300px', width: '270px' }}
         >
           <div
             className="neutek-locator-map-location"
